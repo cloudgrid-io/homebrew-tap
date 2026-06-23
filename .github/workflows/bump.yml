@@ -1,0 +1,62 @@
+name: bump-formula
+
+on:
+  schedule:
+    - cron: "30 8 * * *" # daily at 08:30 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  bump:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Check for new CLI version
+        id: check
+        run: |
+          LATEST=$(npm view @cloudgrid-io/cli version)
+          CURRENT=$(grep -oP 'cli-\K[0-9]+\.[0-9]+\.[0-9]+' Formula/cloudgrid.rb | head -1)
+          echo "latest=$LATEST" >> "$GITHUB_OUTPUT"
+          echo "current=$CURRENT" >> "$GITHUB_OUTPUT"
+          if [ "$LATEST" = "$CURRENT" ]; then
+            echo "up_to_date=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "up_to_date=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Compute new sha256
+        if: steps.check.outputs.up_to_date == 'false'
+        id: sha
+        run: |
+          VERSION="${{ steps.check.outputs.latest }}"
+          URL="https://registry.npmjs.org/@cloudgrid-io/cli/-/cli-${VERSION}.tgz"
+          SHA=$(curl -sL "$URL" | shasum -a 256 | awk '{print $1}')
+          echo "sha256=$SHA" >> "$GITHUB_OUTPUT"
+          echo "url=$URL" >> "$GITHUB_OUTPUT"
+
+      - name: Update formula
+        if: steps.check.outputs.up_to_date == 'false'
+        run: |
+          VERSION="${{ steps.check.outputs.latest }}"
+          SHA="${{ steps.sha.outputs.sha256 }}"
+          sed -i "s|url \"https://registry.npmjs.org/@cloudgrid-io/cli/-/cli-.*\.tgz\"|url \"https://registry.npmjs.org/@cloudgrid-io/cli/-/cli-${VERSION}.tgz\"|" Formula/cloudgrid.rb
+          sed -i "s|sha256 \".*\"|sha256 \"${SHA}\"|" Formula/cloudgrid.rb
+
+      - name: Create pull request
+        if: steps.check.outputs.up_to_date == 'false'
+        uses: peter-evans/create-pull-request@271a8d0340265f705b14b6d32b9829c1cb33d45e # v7.0.8
+        with:
+          commit-message: "chore: bump cloudgrid to ${{ steps.check.outputs.latest }}"
+          branch: bump/cloudgrid-${{ steps.check.outputs.latest }}
+          title: "chore: bump cloudgrid to ${{ steps.check.outputs.latest }}"
+          body: |
+            Automated formula update.
+
+            - Version: ${{ steps.check.outputs.latest }}
+            - SHA256: ${{ steps.sha.outputs.sha256 }}
+            - Tarball: ${{ steps.sha.outputs.url }}
+          labels: automated
