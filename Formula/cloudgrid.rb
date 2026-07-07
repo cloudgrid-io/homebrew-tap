@@ -1,8 +1,8 @@
 class Cloudgrid < Formula
   desc "Build, ship, and run apps and agents on CloudGrid from your terminal"
   homepage "https://github.com/cloudgrid-io/cli"
-  url "https://registry.npmjs.org/@cloudgrid-io/cli/-/cli-0.9.16.tgz"
-  sha256 "ade600ceb3642f3433a3f58753dc468d46974b7cb17bdb467c9f79a2b11f57d1"
+  url "https://registry.npmjs.org/@cloudgrid-io/cli/-/cli-0.14.0.tgz"
+  sha256 "95c7a49f161f5c8aa2fecd9458e099e5cae5868b89eef821e53481f6f36aacdb"
   license "Apache-2.0"
 
   depends_on "node"
