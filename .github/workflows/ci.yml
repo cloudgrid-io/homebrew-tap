@@ -27,6 +27,6 @@ jobs:
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
       - name: brew style
-        run: brew style Formula/cloudgrid.rb
+        run: brew style Formula/grid.rb
       - name: brew audit
-        run: brew audit --strict --online --new Formula/cloudgrid.rb
+        run: brew audit --strict --online --new Formula/grid.rb
