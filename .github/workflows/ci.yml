@@ -29,4 +29,8 @@ jobs:
       - name: brew style
         run: brew style Formula/grid.rb
       - name: brew audit
-        run: brew audit --strict --online --new Formula/grid.rb
+        run: |
+          TAP="$(brew --repository)/Library/Taps/cloudgrid-io/homebrew-tap"
+          mkdir -p "$(dirname "$TAP")"
+          ln -sfn "$GITHUB_WORKSPACE" "$TAP"
+          brew audit --strict --online cloudgrid-io/tap/grid
