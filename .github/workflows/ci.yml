@@ -33,4 +33,6 @@ jobs:
           TAP="$(brew --repository)/Library/Taps/cloudgrid-io/homebrew-tap"
           mkdir -p "$(dirname "$TAP")"
           ln -sfn "$GITHUB_WORKSPACE" "$TAP"
+          # a hand-linked tap is untrusted on newer Homebrew; `brew tap` trusts it for users
+          brew trust --tap cloudgrid-io/tap
           brew audit --strict --online cloudgrid-io/tap/grid
